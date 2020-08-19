@@ -1,6 +1,7 @@
 import pygame
 import os
 import logging
+import time
 from PIL import Image
 
 
@@ -121,7 +122,9 @@ class ImageShow:
             self.screen = pygame.display.set_mode([1920, 1080], pygame.FULLSCREEN)
         # Clock
         self.screen_clock = pygame.time.Clock()
-        self.tick_rate = 10
+        self.tick_rate = 10  # fps
+        self.last_time = time.time()
+        self.change_interval = 15  # change image after 15 secs
         # set witdh and height
         self.SW = self.screen.get_width()
         self.SH = self.screen.get_height()
@@ -278,6 +281,14 @@ class ImageShow:
                                  text=str(round(self.screen_clock.get_fps(), 2)))
             fps_counter.draw(self.screen)
             pygame.display.update()
+            if time.time() - self.last_time >= self.change_interval:
+                self.last_time = time.time()
+                if self.current_image_i + 1 <= len(self.images) - 1:
+                    self.draw_update(self.images[self.current_image_i + 1])
+                    self.current_image_i += 1
+                else:
+                    self.draw_update(self.images[0])
+                    self.current_image_i = 0
 
 
 image_show = ImageShow()
