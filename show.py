@@ -2,6 +2,7 @@ import pygame
 import os
 import logging
 import time
+import random
 from PIL import Image
 
 
@@ -135,7 +136,10 @@ class ImageShow:
         self.current_image_i = 0
 
         # load images
-        self.images = os.listdir(self.image_path)
+        self.shuffel = []
+        self.images = []
+        self.load_images()
+        self.shuffel_images()
 
         # buttons
         self.quit_button_dimension = (150, 30)
@@ -164,11 +168,27 @@ class ImageShow:
                                     self.rotate_button_dimension[0], self.rotate_button_dimension[1], "90°")
 
         # run
-        self.draw_update(self.images[self.current_image_i])
+        self.draw_update(self.images[self.shuffel[self.current_image_i]])
         try:
             self.main()
         except pygame.error as error:
             self.logger.warning(error)
+
+    def load_images(self):
+        if self.images != os.listdir(self.image_path):
+            self.logger.info("updated images from storage")
+            self.images = os.listdir(self.image_path)
+
+    def shuffel_images(self):
+        numbers = []
+        for i in self.images:
+            numbers.append(random.randrange(0, len(self.images)))
+        numbers = list(dict.fromkeys(numbers))
+        range_list = range(0, len(self.images))
+        for e in range_list:
+            if e not in numbers:
+                numbers.append(int(e))
+        self.shuffel = numbers
 
     def draw_update(self, image, image_rotate=0):
         # fill screen
@@ -222,6 +242,31 @@ class ImageShow:
         # update
         pygame.display.update()
 
+    def forward(self):
+        self.last_time = time.time()
+        if self.current_image_i + 1 <= len(self.images) - 1:
+            self.draw_update(self.images[self.shuffel[self.current_image_i + 1]])
+            self.current_image_i += 1
+        else:
+            self.load_images()
+            # TODO chnage to change evrey day
+            self.shuffel_images()
+            self.draw_update(self.shuffel[self.images[0]])
+            self.current_image_i = 0
+
+    def back(self):
+        self.last_time = time.time()
+        if self.current_image_i - 1 >= 0:
+            self.draw_update(self.images[self.shuffel[self.current_image_i - 1]])
+            self.current_image_i -= 1
+        else:
+            self.draw_update(self.shuffel[self.images[-1]])
+            self.current_image_i = len(self.images) - 1
+
+    def rotate(self):
+        self.last_time = time.time()
+        self.draw_update(self.images[self.shuffel[self.current_image_i]], image_rotate=90)
+
     def main(self):
         running = True
 
@@ -235,6 +280,12 @@ class ImageShow:
                 if event.type == pygame.KEYDOWN:
                     if event.key == pygame.K_ESCAPE:
                         pygame.quit()
+                    if event.key == pygame.K_RIGHT:
+                        self.forward()
+                    if event.key == pygame.K_LEFT:
+                        self.back()
+                    if event.key == pygame.K_r:
+                        self.rotate()
                 if event.type == pygame.MOUSEBUTTONDOWN:
                     # quit button
                     if (self.quit_button_location[0] <= mouse[0] <= self.quit_button_location[0] +
@@ -249,24 +300,14 @@ class ImageShow:
                           and
                           self.forward_button_location[1] <= mouse[1] <= self.forward_button_location[1] +
                           self.forward_button_dimension[1]):
-                        if self.current_image_i + 1 <= len(self.images) - 1:
-                            self.draw_update(self.images[self.current_image_i + 1])
-                            self.current_image_i += 1
-                        else:
-                            self.draw_update(self.images[0])
-                            self.current_image_i = 0
+                        self.forward()
                     # back button
                     elif (self.back_button_location[0] <= mouse[0] <= self.back_button_location[0] +
                           self.back_button_dimension[0]
                           and
                           self.back_button_location[1] <= mouse[1] <= self.back_button_location[1] +
                           self.back_button_dimension[1]):
-                        if self.current_image_i - 1 >= 0:
-                            self.draw_update(self.images[self.current_image_i - 1])
-                            self.current_image_i -= 1
-                        else:
-                            self.draw_update(self.images[-1])
-                            self.current_image_i = len(self.images) - 1
+                        self.back()
                     # rotate button
                     elif (self.rotate_button_location[0] <= mouse[0] <= self.rotate_button_location[0] +
                           self.rotate_button_dimension[
@@ -275,12 +316,15 @@ class ImageShow:
                           self.rotate_button_location[1] <= mouse[1] <= self.rotate_button_location[1] +
                           self.rotate_button_dimension[
                               1]):
-                        self.draw_update(self.images[self.current_image_i], image_rotate=90)
+                        self.rotate()
+            # tick
             self.screen_clock.tick(self.tick_rate)
+            # fps counter
             fps_counter = Button(self.color_yellow, self.SW - 60, 0, 60, 40,
                                  text=str(round(self.screen_clock.get_fps(), 2)))
             fps_counter.draw(self.screen)
             pygame.display.update()
+            # loop
             if time.time() - self.last_time >= self.change_interval:
                 self.last_time = time.time()
                 if self.current_image_i + 1 <= len(self.images) - 1:
