@@ -3,7 +3,7 @@ import os
 import logging
 import time
 import random
-import pygame_menu
+import pygameMenu as pygame_menu  # pip install git+https://github.com/ppizarror/pygame-menu.git@v2
 from PIL import Image
 
 
@@ -182,16 +182,21 @@ class ImageShow:
                                   self.hide_button_dimension[0], self.hide_button_dimension[1], "Hide")
 
         # Menu
-        self.menu_background_dimension = (500, 600)
+        self.menu_background_dimension = (400, 300)
         self.menu_background_location = (int(self.SW / 2 - self.menu_background_dimension[0] / 2),
                                          int(self.SH / 2 - self.menu_background_dimension[1] / 2))
         self.menu_background = pygame.Surface(self.menu_background_dimension, pygame.SRCALPHA, 32)
-        self.menu_background.fill((0, 0, 0, 200))
+        self.menu_background.fill((0, 0, 0, 0))
 
-        self.menu = pygame_menu.Menu(width=self.menu_background_dimension[0], height=self.menu_background_dimension[1],
-                                     title="Menu")
-        self.menu.add_selector("Interval: ", [("5", 1), ("10", 2), ("15", 3), ("20", 4), ("25", 5), ("30", 6)],
-                               default=2, onchange=None)
+        self.menu = pygame_menu.Menu(surface=self.screen, window_width=self.SW,
+                                     window_height=self.SH,
+                                     title="Menu", font=pygame_menu.font.FONT_OPEN_SANS, dopause=False,
+                                     menu_alpha=100, menu_height=self.menu_background_dimension[1],
+                                     menu_width=self.menu_background_dimension[0], fps=60, option_shadow=False,
+                                     mouse_enabled=True, mouse_visible=True)
+        self.menu.add_selector("Interval: ",
+                               [("10", 1), ("15", 2), ("20", 3), ("30", 4), ("40", 5), ("50", 6), ("60", 7)],
+                               default=1, onchange=None, selector_id="Interval")
         self.menu.add_button('Shuffel', self.shuffel_images)
         self.menu.add_button('Close', self.disable_menu)
         self.menu.disable()
@@ -403,10 +408,7 @@ class ImageShow:
 
             # draw menu
             if self.menu.is_enabled():
-                # self.screen.blit(self.menu_background, self.menu_background_location)
-                self.menu.update(events)
-                if self.menu.is_enabled():
-                    self.menu.draw(self.screen)
+                self.menu.mainloop(events)
                 pygame.display.update()
 
             # tick
