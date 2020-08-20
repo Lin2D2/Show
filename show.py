@@ -3,6 +3,7 @@ import os
 import logging
 import time
 import random
+import json
 import pygameMenu as pygame_menu  # pip install git+https://github.com/ppizarror/pygame-menu.git@v2
 from PIL import Image
 
@@ -111,7 +112,7 @@ class ImageShow:
         self.color_red = pygame.Color("red")
         self.color_white = pygame.Color("white")
         self.color_black = pygame.Color("black")
-        self.color_grey = pygame.Color("grey")
+        self.darkslate_gray = pygame.Color("darkslategray1")
         self.color_green = pygame.Color("green")
         self.color_yellow = pygame.Color("yellow")
 
@@ -134,7 +135,7 @@ class ImageShow:
         self.SH = self.screen.get_height()
 
         self.background_color = self.color_black
-        self.image_path = "/run/media/space/SD CARD/Bilderrahmen/"
+        self.image_path = "./images"
         self.margin = 10
         self.current_image_i = 0
         self.current_image_name = ""
@@ -143,6 +144,13 @@ class ImageShow:
         # load images
         self.shuffel = []
         self.images = []
+        self.rotated_images = []
+        try:
+            with open("rotated_images.json", "r") as file:
+                self.rotated_images = list(dict.fromkeys(json.load(file)))
+        except FileNotFoundError:
+            with open("rotated_images.json", "w+") as file:
+                json.dump(self.rotated_images, file)
         self.load_images()
         self.shuffel_images()
 
@@ -150,43 +158,46 @@ class ImageShow:
         self.show_buttons = False
         self.show_buttons_ = False
 
-        self.menu_button_dimension = (150, 50)
+        self.menu_button_dimension = (160, 60)
         self.menu_button_location = (int(self.SW / 2 - self.menu_button_dimension[0] / 2),
                                      int(self.SH - self.menu_button_dimension[1] - self.margin))
         self.menu_button = Button(self.color_green, self.menu_button_location[0], self.menu_button_location[1],
                                   self.menu_button_dimension[0], self.menu_button_dimension[1], "Menu")
 
-        self.back_button_dimension = (150, 50)
+        self.back_button_dimension = (160, 60)
         self.back_button_location = (int(self.SW / 2 - self.back_button_dimension[0] - self.menu_button_dimension[0] /
                                          2 - self.margin), int(self.SH - self.back_button_dimension[1] - self.margin))
         self.back_button = Button(self.color_white, self.back_button_location[0], self.back_button_location[1],
                                   self.back_button_dimension[0], self.back_button_dimension[1], "<<")
 
-        self.forward_button_dimension = (150, 50)
+        self.forward_button_dimension = (160, 60)
         self.forward_button_location = (int(self.SW / 2 - self.forward_button_dimension[0] +
                                             self.menu_button_dimension[0] / 2 + self.menu_button_dimension[0] +
                                             self.margin), int(self.SH - self.forward_button_dimension[1] - self.margin))
         self.forward_button = Button(self.color_white, self.forward_button_location[0], self.forward_button_location[1],
                                      self.forward_button_dimension[0], self.forward_button_dimension[1], ">>")
 
-        self.rotate_button_dimension = (60, 50)
+        self.rotate_button_dimension = (70, 60)
         self.rotate_button_location = (int(self.forward_button_location[0] + self.forward_button_dimension[0] +
                                            self.margin), int(self.SH - self.rotate_button_dimension[1] - self.margin))
         self.rotate_button = Button(self.color_white, self.rotate_button_location[0], self.rotate_button_location[1],
                                     self.rotate_button_dimension[0], self.rotate_button_dimension[1], "90°")
 
-        self.hide_button_dimension = (80, 50)
-        self.hide_button_location = (int(self.back_button_location[0] - self.hide_button_dimension[0] - self.margin),
-                                     int(self.SH - self.hide_button_dimension[1] - self.margin))
-        self.hide_button = Button(self.color_yellow, self.hide_button_location[0], self.hide_button_location[1],
-                                  self.hide_button_dimension[0], self.hide_button_dimension[1], "Hide")
+        # self.hide_button_dimension = (90, 60)
+        # self.hide_button_location = (int(self.back_button_location[0] - self.hide_button_dimension[0] - self.margin),
+        #                             int(self.SH - self.hide_button_dimension[1] - self.margin))
+        # self.hide_button = Button(self.color_yellow, self.hide_button_location[0], self.hide_button_location[1],
+        #                          self.hide_button_dimension[0], self.hide_button_dimension[1], "Hide")
+
+        self.date_time_dimension = (350, 60)
+        self.date_time_location = (int(self.SW - self.date_time_dimension[0] - self.margin), int(self.SH - self.date_time_dimension[1] - self.margin))
+        self.date_time = Button(self.darkslate_gray, self.date_time_location[0], self.date_time_location[1],
+                                self.date_time_dimension[0], self.date_time_dimension[1], "")
 
         # Menu
         self.menu_background_dimension = (400, 300)
         self.menu_background_location = (int(self.SW / 2 - self.menu_background_dimension[0] / 2),
                                          int(self.SH / 2 - self.menu_background_dimension[1] / 2))
-        self.menu_background = pygame.Surface(self.menu_background_dimension, pygame.SRCALPHA, 32)
-        self.menu_background.fill((0, 0, 0, 0))
 
         self.menu = pygame_menu.Menu(surface=self.screen, window_width=self.SW,
                                      window_height=self.SH,
@@ -235,7 +246,7 @@ class ImageShow:
         # load image
         if self.current_image_name != image or image_rotate != 0 or refresh_all:
             image_load = Image.open(os.path.join(self.image_path, image))
-            if image_rotate == 90:
+            if image_rotate == 90 or image in self.rotated_images:
                 image_load = image_load.transpose(Image.ROTATE_270)
             # resize image
             size = image_load.size
@@ -265,6 +276,12 @@ class ImageShow:
                 picture_height = int(self.SH - (self.margin * 3)) if self.show_buttons_ else int(self.SH)
 
             image_load = image_load.resize((picture_width, picture_height), Image.ANTIALIAS)
+            try:
+                image_date_time = image_load.getexif()[36867]
+            except KeyError:
+                image_date_time = "not Available"
+            self.date_time.text = image_date_time
+            print(image_date_time)
             # image_load = image_load.resize((width, height - (margin * 3)), Image.ANTIALIAS)
             mode = image_load.mode
             size = image_load.size
@@ -285,7 +302,8 @@ class ImageShow:
             self.forward_button.draw(self.screen)
             self.rotate_button.draw(self.screen)
             self.menu_button.draw(self.screen)
-            self.hide_button.draw(self.screen)
+            # self.hide_button.draw(self.screen)
+            self.date_time.draw(self.screen)
         pygame.display.update()
 
     def forward(self):
@@ -312,6 +330,9 @@ class ImageShow:
     def rotate(self):
         self.last_time = time.time()
         self.draw_update(self.images[self.shuffel[self.current_image_i]], image_rotate=90)
+        self.rotated_images.append(self.images[self.shuffel[self.current_image_i]])
+        with open("rotated_images.json", "w+") as file:
+            json.dump(self.rotated_images, file)
 
     def hide_buttons(self):
         self.show_buttons = not self.show_buttons
@@ -385,14 +406,14 @@ class ImageShow:
                                   1]):
                             self.rotate()
                         # hide button
-                        elif (self.hide_button_location[0] <= mouse[0] <= self.hide_button_location[0] +
-                              self.hide_button_dimension[
-                                  0]
-                              and
-                              self.hide_button_location[1] <= mouse[1] <= self.hide_button_location[1] +
-                              self.hide_button_dimension[
-                                  1]):
-                            self.hide_buttons()
+                        # elif (self.hide_button_location[0] <= mouse[0] <= self.hide_button_location[0] +
+                        #      self.hide_button_dimension[
+                        #          0]
+                        #      and
+                        #      self.hide_button_location[1] <= mouse[1] <= self.hide_button_location[1] +
+                        #      self.hide_button_dimension[
+                        #          1]):
+                        #    self.hide_buttons()
                         else:
                             self.hide_buttons()
                     else:
