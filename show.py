@@ -89,7 +89,7 @@ class Button:
 
 class ImageShow:
     def __init__(self):
-        self.logger = logging.getLogger("Discord_Bot_Logger")
+        self.logger = logging.getLogger("Show_logger")
         self.logger.setLevel(logging.INFO)
 
         ch = logging.StreamHandler()
@@ -251,7 +251,7 @@ class ImageShow:
             self.load_images()
             # TODO chnage to change evrey day
             self.shuffel_images()
-            self.draw_update(self.shuffel[self.images[0]])
+            self.draw_update(self.images[self.shuffel[0]])
             self.current_image_i = 0
 
     def back(self):
@@ -260,7 +260,7 @@ class ImageShow:
             self.draw_update(self.images[self.shuffel[self.current_image_i - 1]])
             self.current_image_i -= 1
         else:
-            self.draw_update(self.shuffel[self.images[-1]])
+            self.draw_update(self.images[self.shuffel[-1]])
             self.current_image_i = len(self.images) - 1
 
     def rotate(self):
