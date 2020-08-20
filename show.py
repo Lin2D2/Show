@@ -193,7 +193,7 @@ class ImageShow:
         self.menu.add_selector("Interval: ", [("5", 1), ("10", 2), ("15", 3), ("20", 4), ("25", 5), ("30", 6)],
                                default=2, onchange=None)
         self.menu.add_button('Shuffel', self.shuffel_images)
-        self.menu.add_button('Quit', self.disable_menu)
+        self.menu.add_button('Close', self.disable_menu)
         self.menu.disable()
 
         # run
@@ -381,18 +381,25 @@ class ImageShow:
                             self.rotate()
                         # hide button
                         elif (self.hide_button_location[0] <= mouse[0] <= self.hide_button_location[0] +
-                                self.hide_button_dimension[
-                                    0]
-                                and
-                                self.hide_button_location[1] <= mouse[1] <= self.hide_button_location[1] +
-                                self.hide_button_dimension[
-                                    1]):
+                              self.hide_button_dimension[
+                                  0]
+                              and
+                              self.hide_button_location[1] <= mouse[1] <= self.hide_button_location[1] +
+                              self.hide_button_dimension[
+                                  1]):
                             self.hide_buttons()
                         else:
                             self.hide_buttons()
                     else:
                         if not self.menu.is_enabled():
                             self.hide_buttons()
+                        elif not (self.menu_background_location[0] <= mouse[0] <= self.menu_background_location[0] +
+                                  self.menu_background_dimension[0]
+                                  and
+                                  self.menu_background_location[1] <= mouse[1] <= self.menu_background_location[1] +
+                                  self.menu_background_dimension[1]):
+                            self.menu.disable()
+                            self.draw_update(self.images[self.shuffel[self.current_image_i]])
 
             # draw menu
             if self.menu.is_enabled():
