@@ -116,16 +116,23 @@ class ImageShow:
         self.color_green = pygame.Color("green")
         self.color_yellow = pygame.Color("yellow")
 
+        write_frame_buffer = False
+
         try:
             # Create an instance of the PyScope class
-            scope = PyScope(self.logger)
-            self.screen = scope.screen
+            if write_frame_buffer:
+                self.logger.info("Not writing to frame buffer change settings to do so")
+                scope = PyScope(self.logger)
+                self.screen = scope.screen
+            else:
+                self.logger.info("writing to frame buffer change settings if thats wrong")
+                self.screen = pygame.display.set_mode([1920, 1080])
         except Exception as error:
             self.logger.warning(f'error trying to run in frame buffer: {error}')
-            self.screen = pygame.display.set_mode([1920, 1080], pygame.FULLSCREEN)
+            self.screen = pygame.display.set_mode([1920, 1080])
         # Clock
         self.screen_clock = pygame.time.Clock()
-        self.tick_rate = 10  # fps
+        self.tick_rate = 1000  # fps
         self.show_fps_counter = False
         self.last_time = time.time()
         self.change_interval = 15  # change image after 15 secs
@@ -203,7 +210,7 @@ class ImageShow:
                                      window_height=self.SH,
                                      title="Menu", font=pygame_menu.font.FONT_OPEN_SANS, dopause=False,
                                      menu_alpha=100, menu_height=self.menu_background_dimension[1],
-                                     menu_width=self.menu_background_dimension[0], fps=60, option_shadow=False,
+                                     menu_width=self.menu_background_dimension[0], fps=1000, option_shadow=False,
                                      mouse_enabled=True, mouse_visible=True)
         self.menu.add_selector("Interval: ",
                                [("10", 1), ("15", 2), ("20", 3), ("30", 4), ("40", 5), ("50", 6), ("60", 7)],
